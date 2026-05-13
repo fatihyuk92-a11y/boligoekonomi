@@ -32,8 +32,8 @@ const FEATURES = [
   },
   {
     icon: "💬",
-    title: "AI-rådgivning",
-    text: "Stil spørgsmål om dit lån. Assistenten kender dine tal og forklarer kurstab, F-kort, bidragssatser pædagogisk.",
+    title: "AI-assistent",
+    text: "Få beregninger og forklaringer baseret på dine tal. Assistenten leverer faktuelle udregninger af kurstab, F-kort, bidragssatser — ikke anbefalinger.",
   },
   {
     icon: "📚",
@@ -174,7 +174,7 @@ export default function LandingPage() {
               backgroundClip: "text",
               fontStyle: "italic",
             }}>boliglån</span><br />
-            som en bankrådgiver
+            i fuld dybde
           </h1>
 
           <p style={{
@@ -184,7 +184,7 @@ export default function LandingPage() {
             marginBottom: 36,
             maxWidth: 480,
           }}>
-            Analyse, simulation og uddannelse for danske boligejere. Beregn omlægning, simulér rentescenarier, og få svar fra en AI der kender dine tal — alt på én platform.
+            Analyseplatform for danske boligejere. Beregn omlægning, simulér rentescenarier, og få forklaret begreber på en AI der kender dine tal — alt på én platform.
           </p>
 
           <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
@@ -222,7 +222,7 @@ export default function LandingPage() {
           <div style={{ marginTop: 48, display: "flex", gap: 32, fontSize: 11, color: C.muted, letterSpacing: "0.06em" }}>
             <div>✓ Realtid-beregninger</div>
             <div>✓ Dansk realkredit</div>
-            <div>✓ AI-rådgivning</div>
+            <div>✓ AI-assistent</div>
           </div>
         </motion.div>
 
@@ -265,7 +265,7 @@ export default function LandingPage() {
             <span style={{ fontStyle: "italic", color: C.gold }}>Ét samlet overblik.</span>
           </h2>
           <p style={{ color: C.muted, fontSize: 15, maxWidth: 540, margin: "0 auto", lineHeight: 1.6 }}>
-            Bygget specifikt til dansk realkredit. Hver funktion er designet til at give dig den klarhed, kun en privatbankrådgiver normalt kan levere.
+            Bygget specifikt til dansk realkredit. Hver funktion er designet til at give dig fuld gennemsigtighed i tallene bag dit boliglån.
           </p>
         </motion.div>
 
@@ -311,7 +311,7 @@ export default function LandingPage() {
           {[
             { v: "30+", l: "Beregningsparametre" },
             { v: "6", l: "Værktøjer" },
-            { v: "AI", l: "Personlig rådgivning" },
+            { v: "AI", l: "Beregninger & forklaringer" },
             { v: "DK", l: "Dansk realkredit" },
           ].map((s) => (
             <div key={s.l}>
@@ -375,7 +375,7 @@ export default function LandingPage() {
           <div style={{ borderTop: `1px solid ${C.border}`, padding: "24px 0", display: "flex", flexDirection: "column", gap: 12, textAlign: "left" }}>
             {[
               "Adgang til alle 6 værktøjer",
-              "Ubegrænset AI-rådgivning",
+              "Ubegrænset AI-assistent",
               "Alle scenarier & simuleringer",
               "Pædagogisk leksikon",
               "Sammenligning af realkreditinstitutter",
@@ -417,7 +417,7 @@ export default function LandingPage() {
           <div>
             <div style={{ color: C.warn, fontSize: 11, fontWeight: 600, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>⚠️ Juridisk disclaimer</div>
             <div style={{ color: C.muted, fontSize: 11, lineHeight: 1.75, maxWidth: 700 }}>
-              Indholdet på platformen er alene til informations- og undervisningsformål og udgør ikke finansiel rådgivning eller lånerådgivning. Beregninger og AI-genererede analyser er vejledende og bør ikke stå alene ved økonomiske beslutninger. Kontakt et autoriseret pengeinstitut eller realkreditinstitut for personlig rådgivning.
+              Indholdet på platformen er alene til informations- og undervisningsformål. Platformen udgør ikke finansiel rådgivning, lånerådgivning eller anbefalinger, og må ikke anvendes som grundlag for økonomiske beslutninger. Beregninger og AI-genererede analyser er vejledende. Brugere opfordres til at indhente uafhængig faglig vurdering hos egen bank eller realkreditinstitut.
             </div>
           </div>
           <div style={{ textAlign: "right" }}>

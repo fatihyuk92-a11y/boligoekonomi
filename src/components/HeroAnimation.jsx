@@ -212,12 +212,12 @@ function MockMetric({ label, value, highlight }) {
 /* ─────────────── SCENE 2: SCENARIOS ─────────────── */
 function SceneScenarios() {
   const bars = [
-    { label: "-2%", value: 0.6, color: C.ok },
-    { label: "-1%", value: 0.75, color: C.ok },
-    { label: "0%", value: 0.9, color: C.gold },
-    { label: "+1%", value: 1.05, color: C.warn },
-    { label: "+2%", value: 1.2, color: C.warn },
-    { label: "+3%", value: 1.35, color: C.bad },
+    { label: "−2%", value: 0.55, ydelse: 7480, color: C.ok },
+    { label: "−1%", value: 0.72, ydelse: 8910, color: C.ok },
+    { label: "0%", value: 0.88, ydelse: 10433, color: C.gold },
+    { label: "+1%", value: 1.04, ydelse: 12080, color: C.warn },
+    { label: "+2%", value: 1.20, ydelse: 13840, color: C.warn },
+    { label: "+3%", value: 1.38, ydelse: 15710, color: C.bad },
   ];
   return (
     <motion.div
@@ -230,27 +230,39 @@ function SceneScenarios() {
       <div style={{ fontSize: 9, color: C.muted, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6 }}>
         📈 Rentescenarier
       </div>
-      <div style={{ fontSize: 14, color: "#fff", fontFamily: "Playfair Display, serif", marginBottom: 16 }}>
+      <div style={{ fontSize: 14, color: "#fff", fontFamily: "Playfair Display, serif", marginBottom: 18 }}>
         Følsomhedsanalyse — ydelse ved rentestød
       </div>
 
-      <div style={{ display: "flex", alignItems: "flex-end", height: 160, gap: 10, padding: "0 8px", position: "relative" }}>
-        {/* baseline line */}
-        <div style={{ position: "absolute", left: 0, right: 0, bottom: 96, borderTop: `1px dashed ${C.border}`, zIndex: 0 }}>
-          <span style={{ position: "absolute", right: 0, top: -14, fontSize: 8, color: C.muted }}>Nuværende</span>
+      <div style={{ display: "flex", alignItems: "flex-end", height: 170, gap: 8, padding: "0 8px", position: "relative" }}>
+        {/* baseline reference line */}
+        <div style={{ position: "absolute", left: 0, right: 0, top: 65, borderTop: `1px dashed ${C.gold}55`, zIndex: 0 }}>
+          <span style={{ position: "absolute", right: 0, top: -14, fontSize: 8, color: C.gold, letterSpacing: "0.04em" }}>NU</span>
         </div>
 
         {bars.map((b, i) => (
-          <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, zIndex: 1 }}>
+          <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, zIndex: 1, height: "100%", justifyContent: "flex-end" }}>
+            {/* value label */}
+            <motion.div
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.12 + 0.5, duration: 0.4 }}
+              style={{ fontSize: 8.5, color: b.color, fontWeight: 700, fontFamily: "Playfair Display, serif", letterSpacing: "-0.02em" }}
+            >
+              {fmt(b.ydelse)}
+            </motion.div>
             <motion.div
               initial={{ height: 0 }}
-              animate={{ height: `${b.value * 70}%` }}
+              animate={{ height: `${b.value * 60}%` }}
               transition={{ delay: i * 0.12, duration: 0.7, ease: [0.34, 1.56, 0.64, 1] }}
               style={{ width: "100%", background: b.color, borderRadius: "3px 3px 0 0", minHeight: 4, boxShadow: `0 0 12px ${b.color}40` }}
             />
-            <div style={{ fontSize: 9, color: C.muted }}>{b.label}</div>
+            <div style={{ fontSize: 9, color: C.muted, fontWeight: 500 }}>{b.label}</div>
           </div>
         ))}
+      </div>
+      <div style={{ fontSize: 8.5, color: C.muted, textAlign: "center", marginTop: 6, letterSpacing: "0.04em" }}>
+        Månedlig ydelse i kr. ved renteændring
       </div>
     </motion.div>
   );
@@ -258,7 +270,7 @@ function SceneScenarios() {
 
 /* ─────────────── SCENE 3: AI CHAT ─────────────── */
 function SceneAI() {
-  const fullText = "Med en restgæld på 2,4 mio. og fast rente på 4% kan en omlægning til 3% reducere din ydelse med ca. 1.380 kr./md. Kurstabet vil dog være ~72.000 kr...";
+  const fullText = "Beregning: Ved restgæld 2,4 mio., omlægning fra 4% til 3% reducerer månedlig ydelse med ca. 1.380 kr. Kurstab udgør ~72.000 kr. Break-even efter 52 mdr.";
   const [typed, setTyped] = useState("");
 
   useEffect(() => {
@@ -289,8 +301,8 @@ function SceneAI() {
         animate={{ opacity: 1, y: 0 }}
         style={{ display: "flex", justifyContent: "flex-end", marginBottom: 10 }}
       >
-        <div style={{ maxWidth: "70%", padding: "9px 13px", background: `${C.gold}1a`, border: `1px solid ${C.gold}33`, borderRadius: "10px 10px 0 10px", fontSize: 11, color: C.text }}>
-          Skal jeg omlægge mit 4%-lån til 3%?
+        <div style={{ maxWidth: "75%", padding: "9px 13px", background: `${C.gold}1a`, border: `1px solid ${C.gold}33`, borderRadius: "10px 10px 0 10px", fontSize: 11, color: C.text }}>
+          Beregn effekten af omlægning fra 4% til 3%
         </div>
       </motion.div>
 
@@ -301,7 +313,7 @@ function SceneAI() {
         transition={{ delay: 0.4 }}
         style={{ display: "flex", justifyContent: "flex-start" }}
       >
-        <div style={{ maxWidth: "82%", padding: "11px 14px", background: C.bg, border: `1px solid ${C.border}`, borderRadius: "10px 10px 10px 0", fontSize: 11, color: C.text, lineHeight: 1.6 }}>
+        <div style={{ maxWidth: "85%", padding: "11px 14px", background: C.bg, border: `1px solid ${C.border}`, borderRadius: "10px 10px 10px 0", fontSize: 11, color: C.text, lineHeight: 1.6 }}>
           <div style={{ color: C.gold, fontSize: 8, fontWeight: 700, marginBottom: 5, textTransform: "uppercase", letterSpacing: "0.08em" }}>🤖 Boligassistent</div>
           {typed}
           <motion.span

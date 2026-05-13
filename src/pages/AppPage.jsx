@@ -72,10 +72,27 @@ function Slider({ label, value, onChange, min, max, step, unit }) {
   );
 }
 
+// Each profile controls the rate range displayed in Scenarier tab
+// — so the selection actually affects the displayed analysis.
 const RISK = {
-  konservativ: { color: C.ok, label: "Konservativ", desc: "Fast rente prioriterer forudsigelighed. Lavere risiko ved rentestigninger." },
-  moderat: { color: C.warn, label: "Moderat", desc: "Mix af fast og variabel. Balance mellem risiko og potentiel besparelse." },
-  aggressiv: { color: C.bad, label: "Aggressiv", desc: "F-kort med refinansiering. Lavere historisk rente, men høj rentesensitivitet." },
+  konservativ: {
+    color: C.ok,
+    label: "Konservativ",
+    desc: "Fokus på rentestigninger. Scenarierne viser primært opadgående rentestød (−1% til +5%).",
+    scenLow: -1, scenHigh: 5, scenStep: 0.5,
+  },
+  moderat: {
+    color: C.warn,
+    label: "Moderat",
+    desc: "Symmetrisk analyse. Scenarierne dækker både stigninger og fald (−2% til +3%).",
+    scenLow: -2, scenHigh: 3, scenStep: 0.5,
+  },
+  aggressiv: {
+    color: C.bad,
+    label: "Aggressiv",
+    desc: "Fokus på rentefald og opkonvertering. Scenarierne viser primært faldende rente (−3% til +2%).",
+    scenLow: -3, scenHigh: 2, scenStep: 0.5,
+  },
 };
 
 const TABS = [
@@ -186,6 +203,13 @@ export default function AppPage() {
   const [aiLoading, setAiLoading] = useState(false);
   const chatEndRef = useRef(null);
 
+  // Omlægning-state (independent so user can experiment freely)
+  const [nyRente, setNyRente] = useState(3.0);
+  const [nyBidrag, setNyBidrag] = useState(0.60);
+  const [nyLånType, setNyLånType] = useState("fast");
+  const [kurstabPct, setKurstabPct] = useState(3.0); // % of restgæld
+  const [stiftelseInput, setStiftelseInput] = useState(15000);
+
   // Core calculations
   const effRente = rente + bidragssats;
   const mr = effRente / 100 / 12;
@@ -206,9 +230,10 @@ export default function AppPage() {
     }
   }
 
-  // Scenario data
+  // Scenario data — range depends on selected risk profile
+  const profile = RISK[risikovillighed];
   const scenData = [];
-  for (let d = -2; d <= 3.01; d += 0.5) {
+  for (let d = profile.scenLow; d <= profile.scenHigh + 0.01; d += profile.scenStep) {
     const r2 = Math.max(0.1, rente + d);
     const mr2 = (r2 + bidragssats) / 100 / 12;
     const y2 = restgæld * mr2 / (1 - Math.pow(1 + mr2, -mdr));
@@ -220,15 +245,21 @@ export default function AppPage() {
     });
   }
 
-  // Refinancing calcs
-  const nyR = 3.0, nyB = 0.60;
-  const nyMR = (nyR + nyB) / 100 / 12;
-  const nyYdelse = restgæld * nyMR / (1 - Math.pow(1 + nyMR, -mdr));
-  const besparelse = ydelse - nyYdelse;
-  const kurstab = restgæld * 0.03;
-  const stiftelse = 15000;
+  // Refinancing — fully dynamic based on user input
+  const nyEffRente = nyRente + nyBidrag;
+  const nyMR = nyEffRente / 100 / 12;
+  const nyYdelse = nyMR > 0.0001 ? restgæld * nyMR / (1 - Math.pow(1 + nyMR, -mdr)) : restgæld / mdr;
+  const besparelse = ydelse - nyYdelse; // positive = nedkonvertering/savings, negative = opkonvertering/cost
+  // Kurstab/kursgevinst sign convention:
+  //   Nedkonvertering (from high to low rate) → cost: kurstab > 0
+  //   Opkonvertering (from low to high rate) → potential gain: kurstab < 0 (kursgevinst)
+  const erNedkonvertering = nyRente < rente;
+  const kurstab = restgæld * (kurstabPct / 100) * (erNedkonvertering ? 1 : -1);
+  const stiftelse = stiftelseInput;
   const totalOmk = kurstab + stiftelse;
-  const breakEven = besparelse > 0 ? totalOmk / besparelse : Infinity;
+  const breakEven = besparelse > 0 && totalOmk > 0 ? totalOmk / besparelse : Infinity;
+  const samletNyRente = nyYdelse * mdr - restgæld;
+  const livstidsBesparelse = besparelse * mdr - totalOmk; // gevinst over hele løbetiden
 
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
@@ -417,7 +448,15 @@ ABSOLUTTE REGLER (overtrædes ikke under nogen omstændigheder):
             {tab === "scenarier" && (
               <div>
                 <h1 style={{ fontFamily: "Playfair Display, serif", fontSize: 30, color: "#fff", marginBottom: 6 }}>Rentescenarier</h1>
-                <p style={{ color: C.muted, fontSize: 13, marginBottom: 28 }}>Hvad sker der med din månedlige ydelse, hvis renten ændrer sig? Simuler effekten af rentestigninger og -fald.</p>
+                <p style={{ color: C.muted, fontSize: 13, marginBottom: 18 }}>Effekten af renteændringer på din månedlige ydelse. Området der analyseres styres af din valgte risikoprofil (kan ændres i Kalkulator-fanen).</p>
+
+                {/* Active profile indicator */}
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "8px 14px", background: `${profile.color}15`, border: `1px solid ${profile.color}44`, borderRadius: 100, marginBottom: 22, fontSize: 12 }}>
+                  <span style={{ width: 7, height: 7, borderRadius: "50%", background: profile.color, boxShadow: `0 0 8px ${profile.color}` }} />
+                  <span style={{ color: C.muted }}>Aktiv profil:</span>
+                  <span style={{ color: profile.color, fontWeight: 600 }}>{profile.label}</span>
+                  <span style={{ color: C.muted }}>· Range {profile.scenLow >= 0 ? "+" : ""}{profile.scenLow}% til +{profile.scenHigh}%</span>
+                </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 22 }}>
                   <div>
@@ -496,11 +535,23 @@ ABSOLUTTE REGLER (overtrædes ikke under nogen omstændigheder):
             {tab === "omlaegning" && (
               <div>
                 <h1 style={{ fontFamily: "Playfair Display, serif", fontSize: 30, color: "#fff", marginBottom: 6 }}>Låneomlægning</h1>
-                <p style={{ color: C.muted, fontSize: 13, marginBottom: 28 }}>Forstå mekanikken bag ned- og opkonvertering, kurstab og break-even beregning.</p>
+                <p style={{ color: C.muted, fontSize: 13, marginBottom: 22 }}>Indstil parametrene for et hypotetisk nyt lån. Beregningerne dækker både nedkonvertering (lavere rente) og opkonvertering (højere rente).</p>
+
+                {/* Konvertering-type indicator */}
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "8px 14px", background: erNedkonvertering ? `${C.ok}15` : `${C.warn}15`, border: `1px solid ${erNedkonvertering ? C.ok + "44" : C.warn + "44"}`, borderRadius: 100, marginBottom: 22, fontSize: 12 }}>
+                  <span style={{ width: 7, height: 7, borderRadius: "50%", background: erNedkonvertering ? C.ok : C.warn }} />
+                  <span style={{ color: C.muted }}>Konverteringstype:</span>
+                  <span style={{ color: erNedkonvertering ? C.ok : C.warn, fontWeight: 600 }}>
+                    {nyRente === rente ? "Identisk rente" : erNedkonvertering ? "📉 Nedkonvertering" : "📈 Opkonvertering"}
+                  </span>
+                  <span style={{ color: C.muted }}>· {rente}% → {nyRente}%</span>
+                </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 22, marginBottom: 22 }}>
+                  {/* LEFT: Nuværende lån */}
                   <Card>
-                    <div style={{ fontFamily: "Playfair Display, serif", fontSize: 18, color: "#fff", marginBottom: 20 }}>Nuværende lån</div>
+                    <div style={{ fontFamily: "Playfair Display, serif", fontSize: 18, color: "#fff", marginBottom: 4 }}>Nuværende lån</div>
+                    <div style={{ fontSize: 11, color: C.muted, marginBottom: 18, textTransform: "uppercase", letterSpacing: "0.06em" }}>{lånType}</div>
                     {[
                       ["Restgæld", `${fmt(restgæld)} kr.`],
                       ["Nominel rente", `${rente}%`],
@@ -516,39 +567,94 @@ ABSOLUTTE REGLER (overtrædes ikke under nogen omstændigheder):
                     ))}
                   </Card>
 
+                  {/* MIDDLE: Configure new loan */}
                   <Card>
-                    <div style={{ fontFamily: "Playfair Display, serif", fontSize: 18, color: "#fff", marginBottom: 20 }}>Nedkonvertering til 3,0% (eksempel)</div>
+                    <div style={{ fontFamily: "Playfair Display, serif", fontSize: 18, color: "#fff", marginBottom: 4 }}>Nyt lån</div>
+                    <div style={{ fontSize: 11, color: C.muted, marginBottom: 18, textTransform: "uppercase", letterSpacing: "0.06em" }}>Justér parametrene</div>
+
+                    <Slider label="Ny nominel rente" value={nyRente} onChange={setNyRente} min={0.5} max={10} step={0.25} unit="%" />
+                    <Slider label="Ny bidragssats" value={nyBidrag} onChange={setNyBidrag} min={0.3} max={2.0} step={0.05} unit="%" />
+
+                    <div style={{ marginBottom: 18 }}>
+                      <div style={{ color: C.muted, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 9 }}>Ny låntype</div>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        {["fast", "variabel", "F-kort"].map(t => (
+                          <button key={t} className="typeBtn" onClick={() => setNyLånType(t)} style={{ borderColor: nyLånType === t ? C.gold : C.border, background: nyLånType === t ? `${C.gold}1a` : "transparent", color: nyLånType === t ? C.gold : C.muted, fontWeight: nyLånType === t ? 600 : 400 }}>{t}</button>
+                        ))}
+                      </div>
+                      {nyLånType !== lånType && (
+                        <div style={{ marginTop: 10, padding: "9px 12px", background: `${C.warn}0d`, border: `1px solid ${C.warn}33`, borderRadius: 7, fontSize: 11, color: C.muted, lineHeight: 1.55 }}>
+                          ⚠️ Skift fra <strong style={{ color: C.text }}>{lånType}</strong> til <strong style={{ color: C.warn }}>{nyLånType}</strong>. {nyLånType === "F-kort" ? "F-kort har variabel rente — angivne rente er kun gyldig til næste refinansiering." : nyLånType === "variabel" ? "Variabel rente justeres ifølge institutets vilkår." : "Fast rente er låst i hele løbetiden."}
+                        </div>
+                      )}
+                    </div>
+
+                    <Slider label="Estimeret kurs-effekt" value={kurstabPct} onChange={setKurstabPct} min={0} max={10} step={0.25} unit="%" />
+                    <Slider label="Stiftelsesomkostninger" value={stiftelseInput} onChange={setStiftelseInput} min={0} max={50000} step={1000} unit="kr." />
+                  </Card>
+                </div>
+
+                {/* RESULT SUMMARY */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14, marginBottom: 22 }}>
+                  <Metric index={0} label="Ny månedlig ydelse" value={`${fmt(nyYdelse)} kr.`} sub={`Effektiv rente ${nyEffRente.toFixed(2)}%`} color={besparelse >= 0 ? C.ok : C.bad} />
+                  <Metric index={1} label={besparelse >= 0 ? "Månedlig besparelse" : "Månedlig merudgift"} value={`${besparelse >= 0 ? "−" : "+"}${fmt(Math.abs(besparelse))} kr.`} sub={`${besparelse >= 0 ? "−" : "+"}${fmt(Math.abs(besparelse) * 12)} kr./år`} color={besparelse >= 0 ? C.ok : C.bad} />
+                  <Metric index={2} label={erNedkonvertering ? "Kurstab" : "Potentiel kursgevinst"} value={`${fmt(Math.abs(kurstab))} kr.`} sub={`${kurstabPct}% af restgæld`} color={erNedkonvertering ? C.bad : C.ok} />
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 22 }}>
+                  <Card>
+                    <div style={{ fontFamily: "Playfair Display, serif", fontSize: 17, color: "#fff", marginBottom: 18 }}>Detaljeret opgørelse</div>
                     {[
-                      ["Ny nominel rente", "3,00%"],
-                      ["Ny bidragssats", "0,60%"],
-                      ["Ny effektiv rente", "3,60%"],
-                      ["Ny månedlig ydelse", `${fmt(nyYdelse)} kr.`, C.ok, true],
-                      ["Månedlig besparelse", `${fmt(besparelse)} kr.`, C.ok, true],
-                      ["Estimeret kurstab (~3%)", `${fmt(kurstab)} kr.`, C.bad],
-                      ["Stiftelsesomkostninger", `${fmt(stiftelse)} kr.`, C.warn],
-                      ["Samlede omkostninger", `${fmt(totalOmk)} kr.`, C.bad],
+                      ["Ny månedlig ydelse", `${fmt(nyYdelse)} kr.`, besparelse >= 0 ? C.ok : C.bad, true],
+                      [besparelse >= 0 ? "Månedlig besparelse" : "Månedlig merudgift", `${besparelse >= 0 ? "−" : "+"}${fmt(Math.abs(besparelse))} kr.`, besparelse >= 0 ? C.ok : C.bad, true],
+                      [erNedkonvertering ? `Kurstab (${kurstabPct}%)` : `Kursgevinst (${kurstabPct}%)`, `${kurstab >= 0 ? "+" : "−"}${fmt(Math.abs(kurstab))} kr.`, kurstab >= 0 ? C.bad : C.ok],
+                      ["Stiftelsesomkostninger", `${fmt(stiftelseInput)} kr.`, C.warn],
+                      ["Samlede engangsomkostninger", `${totalOmk >= 0 ? "" : "−"}${fmt(Math.abs(totalOmk))} kr.`, totalOmk >= 0 ? C.bad : C.ok, true],
+                      ["Samlet renteomk. (ny)", `${fmt(samletNyRente)} kr.`, null],
+                      ["Livstidsgevinst (vs. nuværende)", `${livstidsBesparelse >= 0 ? "+" : "−"}${fmt(Math.abs(livstidsBesparelse))} kr.`, livstidsBesparelse >= 0 ? C.ok : C.bad, true],
                     ].map(([l, v, col, bold]) => (
                       <div key={l} className="rowItem">
                         <span style={{ color: C.muted, fontSize: 13 }}>{l}</span>
                         <span style={{ color: col || C.text, fontWeight: bold ? 700 : 400, fontSize: 14 }}>{v}</span>
                       </div>
                     ))}
+                  </Card>
 
-                    <div style={{ marginTop: 18, padding: "16px 18px", background: `${C.gold}0d`, borderRadius: 10, border: `1px solid ${C.gold}33` }}>
-                      <div style={{ color: C.gold, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 }}>Break-even analyse</div>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <div style={{ marginBottom: 16, padding: "20px 22px", background: `${C.gold}0d`, borderRadius: 12, border: `1px solid ${C.gold}33` }}>
+                      <div style={{ color: C.gold, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 10 }}>Break-even analyse</div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                         <span style={{ color: C.muted, fontSize: 13 }}>Måneder til break-even</span>
-                        <span style={{ color: C.gold, fontSize: 26, fontWeight: 700, fontFamily: "Playfair Display, serif" }}>
+                        <span style={{ color: C.gold, fontSize: 30, fontWeight: 700, fontFamily: "Playfair Display, serif" }}>
                           {isFinite(breakEven) ? `${Math.round(breakEven)} mdr.` : "∞"}
                         </span>
                       </div>
-                      {isFinite(breakEven) && <div style={{ color: C.muted, fontSize: 11, marginTop: 6 }}>Potentielt rentabelt efter {Math.round(breakEven / 12 * 10) / 10} år, forudsat fortsat ejerskab.</div>}
+                      {isFinite(breakEven)
+                        ? <div style={{ color: C.muted, fontSize: 12, lineHeight: 1.6 }}>Engangsomkostninger ({fmt(Math.abs(totalOmk))} kr.) dækkes via besparelsen efter {Math.round(breakEven / 12 * 10) / 10} år.</div>
+                        : besparelse < 0
+                          ? <div style={{ color: C.muted, fontSize: 12, lineHeight: 1.6 }}>Nyt lån har højere månedlig ydelse — der er ingen besparelse at sammenholde med omkostningerne. Kan dog give kursgevinst ved opkonvertering.</div>
+                          : <div style={{ color: C.muted, fontSize: 12, lineHeight: 1.6 }}>Engangsomkostninger er negative (kursgevinst overstiger stiftelse) — break-even er øjeblikkelig.</div>
+                      }
                     </div>
 
+                    <Card style={{ borderLeft: `3px solid ${erNedkonvertering ? C.bad : C.ok}` }}>
+                      <div style={{ color: erNedkonvertering ? C.bad : C.ok, fontSize: 12, fontWeight: 600, marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.07em" }}>
+                        {erNedkonvertering ? "📉 Mekanik ved nedkonvertering" : nyRente === rente ? "Ingen renteændring" : "📈 Mekanik ved opkonvertering"}
+                      </div>
+                      <div style={{ color: C.muted, fontSize: 12, lineHeight: 1.7 }}>
+                        {erNedkonvertering
+                          ? "Skift fra højere til lavere rente. Obligationerne handles over kurs 100, da de betaler høj rente. Indfrielse til markedskurs medfører kurstab, men reducerer fremtidig ydelse."
+                          : nyRente === rente
+                            ? "Ny rente er identisk med nuværende. Stiftelsesomkostninger udgør den eneste engangsudgift."
+                            : "Skift fra lavere til højere rente. Obligationerne handles under kurs 100. Indfrielse sker billigere end pålydende → potentiel kursgevinst og reduceret faktisk gæld. Ydelsen stiger dog."
+                        }
+                      </div>
+                    </Card>
+
                     <div style={{ marginTop: 12, padding: "10px 14px", background: `${C.bad}0a`, borderRadius: 8, border: `1px solid ${C.bad}1a`, fontSize: 11, color: C.muted, lineHeight: 1.6 }}>
-                      ⚠️ Vejledende beregning. Faktiske kurser og omkostninger kan afvige. Indhent konkret tilbud hos dit realkreditinstitut.
+                      ⚠️ Vejledende beregning. Faktiske kurser og omkostninger fastsættes af realkreditinstituttet. Indhent konkret tilbud.
                     </div>
-                  </Card>
+                  </div>
                 </div>
 
                 <Card>

@@ -180,7 +180,7 @@ export default function AppPage() {
   const [risikovillighed, setRisikovillighed] = useState("moderat");
   const [aktivtEmne, setAktivtEmne] = useState(null);
   const [messages, setMessages] = useState([
-    { role: "assistant", content: "Hej! Jeg er din boligøkonomi-assistent 🏠\n\nJeg kender dine aktuelle lånedata fra kalkulatoren og kan hjælpe dig med at forstå omlægning, bidragssatser, F-kort, kurstab og meget mere.\n\nHvad vil du gerne vide?" }
+    { role: "assistant", content: "Hej 🏠\n\nJeg er en informationsmotor for boligøkonomi. Jeg leverer beregninger og forklarer begreber som F-kort, kurstab og bidragssats — på baggrund af dine aktuelle tal fra kalkulatoren.\n\nJeg giver ikke rådgivning eller anbefalinger, og jeg udtaler mig ikke om hvad du bør gøre. For konkrete beslutninger henvises til uafhængig faglig vurdering hos din bank eller dit realkreditinstitut.\n\nHvad vil du gerne have beregnet eller forklaret?" }
   ]);
   const [chatInput, setChatInput] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
@@ -240,7 +240,7 @@ export default function AppPage() {
     setChatInput("");
     setAiLoading(true);
 
-    const sys = `Du er en dansk boligøkonomi-assistent på en informations- og uddannelsesplatform. Du er IKKE finansiel rådgiver og giver IKKE personlige anbefalinger.
+    const sys = `Du er en dansk boligøkonomi-informationsmotor. Du er IKKE en rådgiver. Du må IKKE give anbefalinger, vurderinger eller udtale dig om hvad brugeren bør gøre.
 
 Brugerens aktuelle lånedata:
 - Restgæld: ${fmt(restgæld)} kr.
@@ -252,14 +252,16 @@ Brugerens aktuelle lånedata:
 - Månedlig ydelse: ${fmt(ydelse)} kr.
 - Belåningsgrad (LTV): ${ltv.toFixed(1)}%
 - Samlet renteomkostning: ${fmt(samletRente)} kr.
-- Risikovillighed: ${risikovillighed}
 
-Regler:
-1. Svar ALTID på dansk, klart og pædagogisk
-2. Brug ALDRIG direkte rådgivning som "du bør" eller "jeg anbefaler" – brug "beregningerne viser", "en mulighed kan være", "det kan overvejes at"
-3. Henvis til professionel rådgiver ved konkrete beslutninger
-4. Maks 200 ord – præcist og nyttigt
-5. Brug brugerens faktiske tal aktivt i svar`;
+ABSOLUTTE REGLER (overtrædes ikke under nogen omstændigheder):
+1. Svar ALTID på dansk
+2. Brug ALDRIG formuleringer som "du bør", "jeg anbefaler", "det er en god idé", "det er bedst at", "vælg", "overvej at", "gør dette". Brug i stedet rent faktuelle formuleringer som "beregningen viser", "tallene angiver", "resultatet bliver"
+3. Du må IKKE udtale dig om hvad der er "godt", "dårligt", "bekymrende", "fornuftigt" eller lignende vurderende ord
+4. Du må IKKE forholde dig til brugerens situation eller anbefale handlinger
+5. Henvis ALTID til at brugeren skal indhente uafhængig faglig vurdering hos egen bank/realkreditinstitut ved konkrete spørgsmål om valg
+6. Hvis brugeren spørger "skal jeg…" eller beder om anbefalinger: afvis høfligt og forklar at platformen kun leverer beregninger og generel information
+7. Maks 200 ord. Vær præcis og faktuel.
+8. Brug brugerens tal i beregninger, men kun som regnestykker — aldrig som grundlag for vurdering`;
 
     try {
       // ⚠️ CALLS OUR VERCEL BACKEND ROUTE — NOT api.anthropic.com directly
@@ -304,30 +306,33 @@ Regler:
         .backLink:hover { color: ${C.gold}; }
       `}</style>
 
-      {/* Header */}
-      <div style={{ borderBottom: `1px solid ${C.border}`, padding: "16px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100, background: "rgba(13,27,46,0.92)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}>
-        <Link to="/" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ width: 38, height: 38, background: `linear-gradient(135deg, ${C.gold}, ${C.goldL})`, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🏠</div>
-          <div>
-            <div style={{ fontFamily: "Playfair Display, serif", fontSize: 20, fontWeight: 700, color: "#fff", lineHeight: 1 }}>BoligØkonomi</div>
-            <div style={{ fontSize: 9, color: C.muted, letterSpacing: "0.12em", textTransform: "uppercase", marginTop: 2 }}>Analyse · Simulation · Uddannelse</div>
-          </div>
-        </Link>
-        <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-          <Link to="/" className="backLink">← Forside</Link>
-          <div style={{ fontSize: 11, color: C.muted, textAlign: "right", maxWidth: 280 }}>
-            ⚠️ Informations- og undervisningsformål — Ikke finansiel rådgivning
+      {/* Sticky nav wrapper — header + tabs stay together on scroll */}
+      <div style={{ position: "sticky", top: 0, zIndex: 100, background: "rgba(13,27,46,0.92)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}>
+        {/* Header */}
+        <div style={{ borderBottom: `1px solid ${C.border}`, padding: "16px 28px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <Link to="/" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ width: 38, height: 38, background: `linear-gradient(135deg, ${C.gold}, ${C.goldL})`, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🏠</div>
+            <div>
+              <div style={{ fontFamily: "Playfair Display, serif", fontSize: 20, fontWeight: 700, color: "#fff", lineHeight: 1 }}>BoligØkonomi</div>
+              <div style={{ fontSize: 9, color: C.muted, letterSpacing: "0.12em", textTransform: "uppercase", marginTop: 2 }}>Analyse · Simulation · Uddannelse</div>
+            </div>
+          </Link>
+          <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+            <Link to="/" className="backLink">← Forside</Link>
+            <div style={{ fontSize: 11, color: C.muted, textAlign: "right", maxWidth: 280 }}>
+              ⚠️ Informations- og undervisningsformål — Ikke finansiel rådgivning
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Tabs */}
-      <div style={{ borderBottom: `1px solid ${C.border}`, padding: "0 28px", display: "flex", gap: 2, overflowX: "auto" }}>
-        {TABS.map(t => (
-          <button key={t.id} className="tabBtn" onClick={() => setTab(t.id)} style={{ padding: "13px 18px", background: tab === t.id ? C.card : "transparent", border: "none", borderBottom: `2px solid ${tab === t.id ? C.gold : "transparent"}`, color: tab === t.id ? C.gold : C.muted, cursor: "pointer", fontSize: 12, fontFamily: "DM Sans, sans-serif", fontWeight: tab === t.id ? 600 : 400, whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 6 }}>
-            {t.icon} {t.label}
-          </button>
-        ))}
+        {/* Tabs */}
+        <div style={{ borderBottom: `1px solid ${C.border}`, padding: "0 28px", display: "flex", gap: 2, overflowX: "auto" }}>
+          {TABS.map(t => (
+            <button key={t.id} className="tabBtn" onClick={() => setTab(t.id)} style={{ padding: "13px 18px", background: tab === t.id ? C.card : "transparent", border: "none", borderBottom: `2px solid ${tab === t.id ? C.gold : "transparent"}`, color: tab === t.id ? C.gold : C.muted, cursor: "pointer", fontSize: 12, fontFamily: "DM Sans, sans-serif", fontWeight: tab === t.id ? 600 : 400, whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 6 }}>
+              {t.icon} {t.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Content with animated tab transitions */}
@@ -700,7 +705,15 @@ Regler:
             {tab === "ai" && (
               <div>
                 <h1 style={{ fontFamily: "Playfair Display, serif", fontSize: 30, color: "#fff", marginBottom: 6 }}>AI Boligassistent</h1>
-                <p style={{ color: C.muted, fontSize: 13, marginBottom: 28 }}>Stil spørgsmål om dit lån og boligfinansiering. Assistenten kender dine aktuelle lånedata fra kalkulatoren.</p>
+                <p style={{ color: C.muted, fontSize: 13, marginBottom: 20 }}>Få beregninger og forklaringer på begreber inden for boligfinansiering, baseret på dine tal fra kalkulatoren.</p>
+
+                {/* Juridisk banner */}
+                <div style={{ padding: "14px 18px", background: `${C.warn}0d`, border: `1px solid ${C.warn}33`, borderLeft: `3px solid ${C.warn}`, borderRadius: 8, marginBottom: 22, display: "flex", gap: 12, alignItems: "flex-start" }}>
+                  <span style={{ fontSize: 16 }}>⚠️</span>
+                  <div style={{ color: C.muted, fontSize: 12, lineHeight: 1.65 }}>
+                    <strong style={{ color: C.warn, fontWeight: 600 }}>Ikke rådgivning.</strong> AI-assistenten leverer udelukkende beregninger og generel information om boligfinansieringsbegreber. Den giver ikke anbefalinger, forholder sig ikke til brugerens situation og udtaler sig ikke om valg. Resultater er vejledende. Indhent uafhængig faglig vurdering hos egen bank eller realkreditinstitut ved konkrete beslutninger.
+                  </div>
+                </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "3fr 1fr", gap: 22 }}>
                   <div style={{ display: "flex", flexDirection: "column", height: 580 }}>
@@ -726,7 +739,7 @@ Regler:
                       <div ref={chatEndRef} />
                     </div>
                     <div style={{ display: "flex", border: `1px solid ${C.border}`, borderTop: "none", borderRadius: "0 0 12px 12px", overflow: "hidden" }}>
-                      <input className="chatIn" type="text" value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={e => e.key === "Enter" && sendChat()} placeholder="F.eks. 'Hvad sker der hvis renten stiger 2%?' eller 'Forklar kurstab'" />
+                      <input className="chatIn" type="text" value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={e => e.key === "Enter" && sendChat()} placeholder="F.eks. 'Beregn ydelse ved 5% rente' eller 'Forklar kurstab'" />
                       <button className="sendBtn" onClick={sendChat} disabled={aiLoading || !chatInput.trim()} style={{ background: chatInput.trim() && !aiLoading ? C.gold : C.border, color: chatInput.trim() && !aiLoading ? "#0d1b2e" : C.muted }}>Send →</button>
                     </div>
                   </div>
@@ -744,7 +757,7 @@ Regler:
 
                     <Card>
                       <div style={{ color: C.gold, fontSize: 11, fontWeight: 600, marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.07em" }}>Foreslåede spørgsmål</div>
-                      {["Hvad er forskellen på fast rente og F-kort?", "Hvad sker der ved omlægning til 3%?", "Forklar bidragssatsen med mine tal", "Hvad er kurstab, og hvornår opstår det?", "Er min belåningsgrad bekymrende?", "Hvad er gældskvote?"].map(s => (
+                      {["Hvad er forskellen på fast rente og F-kort?", "Beregn effekten af omlægning til 3%", "Forklar bidragssatsen med mine tal", "Hvad er kurstab, og hvornår opstår det?", "Forklar belåningsgrad og gældskvote", "Hvad er refinansiering på et F-kort?"].map(s => (
                         <button key={s} className="suggBtn" onClick={() => setChatInput(s)} style={{ display: "block", width: "100%", padding: "8px 11px", marginBottom: 7, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, color: C.muted, cursor: "pointer", fontSize: 11, textAlign: "left", fontFamily: "DM Sans, sans-serif", lineHeight: 1.4 }}>
                           {s}
                         </button>
@@ -765,7 +778,7 @@ Regler:
           <div>
             <div style={{ color: C.warn, fontSize: 11, fontWeight: 600, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>⚠️ Juridisk disclaimer</div>
             <div style={{ color: C.muted, fontSize: 11, lineHeight: 1.75, maxWidth: 700 }}>
-              Indholdet på platformen er alene til informations- og undervisningsformål og udgør ikke finansiel rådgivning eller lånerådgivning. Beregninger og AI-genererede analyser er vejledende og bør ikke stå alene ved økonomiske beslutninger. Kontakt et autoriseret pengeinstitut eller realkreditinstitut for personlig rådgivning.
+              Indholdet på platformen er alene til informations- og undervisningsformål. Platformen udgør ikke finansiel rådgivning, lånerådgivning eller anbefalinger, og må ikke anvendes som grundlag for økonomiske beslutninger. Beregninger og AI-genererede analyser er vejledende. Brugere opfordres til at indhente uafhængig faglig vurdering hos egen bank eller realkreditinstitut.
             </div>
           </div>
           <div style={{ textAlign: "right" }}>

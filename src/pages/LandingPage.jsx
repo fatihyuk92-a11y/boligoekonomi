@@ -95,6 +95,9 @@ export default function LandingPage() {
             <a href="#funktioner" style={{ color: C.muted, fontSize: 13, transition: "color 0.2s" }}
                onMouseEnter={e => e.currentTarget.style.color = C.text}
                onMouseLeave={e => e.currentTarget.style.color = C.muted}>Funktioner</a>
+            <Link to="/markeder" style={{ color: C.muted, fontSize: 13, transition: "color 0.2s" }}
+               onMouseEnter={e => e.currentTarget.style.color = C.text}
+               onMouseLeave={e => e.currentTarget.style.color = C.muted}>Markeder</Link>
             <a href="#priser" style={{ color: C.muted, fontSize: 13 }}
                onMouseEnter={e => e.currentTarget.style.color = C.text}
                onMouseLeave={e => e.currentTarget.style.color = C.muted}>Priser</a>

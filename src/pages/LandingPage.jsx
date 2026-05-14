@@ -91,13 +91,10 @@ export default function LandingPage() {
               <div style={{ fontSize: 9, color: C.muted, letterSpacing: "0.12em", textTransform: "uppercase", marginTop: 2 }}>Analyse · Simulation · Uddannelse</div>
             </div>
           </div>
-          <nav style={{ display: "flex", alignItems: "center", gap: 24 }}>
+          <nav style={{ display: "flex", alignItems: "center", gap: 18 }}>
             <a href="#funktioner" style={{ color: C.muted, fontSize: 13, transition: "color 0.2s" }}
                onMouseEnter={e => e.currentTarget.style.color = C.text}
                onMouseLeave={e => e.currentTarget.style.color = C.muted}>Funktioner</a>
-            <Link to="/markeder" style={{ color: C.muted, fontSize: 13, transition: "color 0.2s" }}
-               onMouseEnter={e => e.currentTarget.style.color = C.text}
-               onMouseLeave={e => e.currentTarget.style.color = C.muted}>Markeder</Link>
             <a href="#priser" style={{ color: C.muted, fontSize: 13 }}
                onMouseEnter={e => e.currentTarget.style.color = C.text}
                onMouseLeave={e => e.currentTarget.style.color = C.muted}>Priser</a>
@@ -114,6 +111,24 @@ export default function LandingPage() {
             onMouseEnter={e => { e.currentTarget.style.background = C.goldL; e.currentTarget.style.transform = "translateY(-1px)"; }}
             onMouseLeave={e => { e.currentTarget.style.background = C.gold; e.currentTarget.style.transform = "translateY(0)"; }}>
               Prøv platformen →
+            </Link>
+            <Link to="/markeder" style={{
+              padding: "9px 16px 9px 14px",
+              background: "transparent",
+              color: C.text,
+              border: `1px solid ${C.gold}66`,
+              borderRadius: 8,
+              fontSize: 13,
+              fontWeight: 600,
+              transition: "all 0.2s",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = `${C.gold}1a`; e.currentTarget.style.borderColor = C.gold; e.currentTarget.style.transform = "translateY(-1px)"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = `${C.gold}66`; e.currentTarget.style.transform = "translateY(0)"; }}>
+              <span style={{ width: 7, height: 7, borderRadius: "50%", background: C.ok, boxShadow: `0 0 8px ${C.ok}`, animation: "livePulse 2s ease-in-out infinite" }} />
+              Markeder
             </Link>
           </nav>
         </div>

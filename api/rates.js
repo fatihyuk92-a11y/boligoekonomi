@@ -69,23 +69,50 @@ async function fetchFed() {
     };
   }
   try {
-    // DFEDTARU = Upper target, DFEDTARL = Lower target, EFFR = Effective rate
-    // We fetch the upper target which is the most commonly cited "Fed funds rate"
+    // DFEDTARU = Upper target of the federal funds rate range
+    // We fetch a longer window to safely find recent non-empty observations
+    // (FRED returns "." for non-business days)
     const series = "DFEDTARU";
-    const url = `https://api.stlouisfed.org/fred/series/observations?series_id=${series}&api_key=${apiKey}&file_type=json&sort_order=desc&limit=2`;
+    const url = `https://api.stlouisfed.org/fred/series/observations?series_id=${series}&api_key=${apiKey.trim()}&file_type=json&sort_order=desc&limit=30`;
     const res = await fetch(url);
-    if (!res.ok) throw new Error(`FRED: ${res.status}`);
+    if (!res.ok) {
+      // Try to capture the FRED error message for easier debugging
+      let detail = "";
+      try {
+        const errText = await res.text();
+        // FRED returns errors in either XML or JSON
+        if (errText.includes("error_message")) {
+          const match = errText.match(/error_message["\s:]+([^"}\n]+)/);
+          if (match) detail = ` — ${match[1].trim()}`;
+        } else {
+          detail = ` — ${errText.slice(0, 120)}`;
+        }
+      } catch {}
+      throw new Error(`FRED API returned ${res.status}${detail}`);
+    }
     const data = await res.json();
-    const obs = data.observations || [];
+    const obs = (data.observations || []).filter(o => o.value !== "." && o.value !== "" && o.value !== null);
+    if (obs.length === 0) {
+      return { fedFunds: { error: "No observations returned from FRED" } };
+    }
     const latest = obs[0];
-    const prev = obs[1];
+    // Find previous observation with a DIFFERENT value (so "change" is meaningful)
+    const latestVal = parseFloat(latest.value);
+    let prev = null;
+    for (let i = 1; i < obs.length; i++) {
+      const v = parseFloat(obs[i].value);
+      if (v !== latestVal) {
+        prev = obs[i];
+        break;
+      }
+    }
     return {
       fedFunds: {
-        value: latest ? parseFloat(latest.value) : null,
-        date: latest?.date,
+        value: latestVal,
+        date: latest.date,
         previous: prev ? parseFloat(prev.value) : null,
         previousDate: prev?.date,
-        change: latest && prev ? +(parseFloat(latest.value) - parseFloat(prev.value)).toFixed(2) : null,
+        change: prev ? +(latestVal - parseFloat(prev.value)).toFixed(2) : null,
         note: "Upper bound of federal funds target range",
       },
     };

@@ -116,13 +116,13 @@ export default function MarketsPage() {
           <div>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "5px 12px", background: `${C.gold}15`, border: `1px solid ${C.gold}33`, borderRadius: 100, fontSize: 10, color: C.gold, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 18 }}>
               <span style={{ width: 6, height: 6, background: C.gold, borderRadius: "50%", boxShadow: `0 0 8px ${C.gold}` }} />
-              Live data
+              Officielle data
             </div>
             <h1 style={{ fontFamily: "Playfair Display, serif", fontSize: "clamp(36px, 4.5vw, 52px)", color: "#fff", letterSpacing: "-0.02em", lineHeight: 1.05, marginBottom: 14, fontWeight: 700 }}>
               Markeder & <span style={{ background: `linear-gradient(135deg, ${C.gold}, ${C.goldL})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", fontStyle: "italic" }}>Centralbanker</span>
             </h1>
             <p style={{ color: C.muted, fontSize: 15, lineHeight: 1.65, maxWidth: 580 }}>
-              Aktuelle pengepolitiske renter fra Den Europæiske Centralbank, Federal Reserve og Danmarks Nationalbank. Data hentes direkte fra de officielle statistik-API'er.
+              Pengepolitiske renter offentliggjort af Den Europæiske Centralbank, Federal Reserve og Danmarks Nationalbank. Værdier gengives fra de officielle statistik-API'er uden bearbejdning.
             </p>
           </div>
           <button
@@ -150,7 +150,7 @@ export default function MarketsPage() {
 
         {/* Disclaimer */}
         <div style={{ padding: "14px 18px", background: `${C.warn}0d`, border: `1px solid ${C.warn}33`, borderLeft: `3px solid ${C.warn}`, borderRadius: 8, marginBottom: 32, fontSize: 12, color: C.muted, lineHeight: 1.65 }}>
-          ⚠️ <strong style={{ color: C.warn }}>Ikke finansiel rådgivning.</strong> Data hentes fra ECB Data Portal, Federal Reserve (FRED) og Danmarks Statistik. Værdier vises som offentliggjort og kan være forsinket op til 24 timer. Information er udelukkende til oplysning.
+          ⚠️ <strong style={{ color: C.warn }}>Ikke finansiel rådgivning.</strong> Data hentes fra tredjepartskilder (ECB Data Portal, Federal Reserve / FRED og Danmarks Statistik) og gengives uden bearbejdning eller fortolkning. Værdier kan være forsinkede op til 24 timer eller mere afhængigt af kildens opdateringsfrekvens. Platformen er ikke ansvarlig for forsinkelser, fejl eller mangler i data. Indholdet er udelukkende til oplysning og må ikke anvendes som grundlag for økonomiske dispositioner. Bekræft altid satser direkte hos pågældende centralbank.
         </div>
 
         {/* Loading */}
@@ -226,7 +226,7 @@ export default function MarketsPage() {
             style={{ marginBottom: 32, padding: "24px 28px", background: `linear-gradient(135deg, ${C.card}, ${C.cardH})`, border: `1px solid ${C.gold}33`, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 20 }}
           >
             <div>
-              <div style={{ color: C.gold, fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", fontWeight: 600, marginBottom: 6 }}>⏰ Næste rentemøde</div>
+              <div style={{ color: C.gold, fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", fontWeight: 600, marginBottom: 6 }}>⏰ Næste planlagte møde</div>
               <div style={{ fontFamily: "Playfair Display, serif", fontSize: 26, color: "#fff", fontWeight: 700, marginBottom: 4 }}>
                 {upcomingMeetings[0][0]}
               </div>
@@ -284,7 +284,7 @@ export default function MarketsPage() {
             </table>
           </div>
           <div style={{ marginTop: 16, fontSize: 11, color: C.muted, lineHeight: 1.6, padding: "12px 14px", background: C.bg, borderRadius: 7 }}>
-            💡 Nationalbanken justerer typisk renten i forbindelse med ECB's beslutninger for at holde det pengepolitiske rentespænd uændret. Direktiv om at fastholde fastkurspolitikken over for euroen er styrende.
+            💡 Datoer er offentliggjorte mødeplaner og <strong style={{ color: C.text }}>kan ændres uden varsel</strong> af de respektive centralbanker. Bekræft altid aktuelle datoer direkte hos ECB, Federal Reserve eller Nationalbanken inden planlægning. Nationalbanken justerer typisk renten i forbindelse med ECB's beslutninger for at holde det pengepolitiske rentespænd uændret som led i fastkurspolitikken over for euroen.
           </div>
         </div>
 

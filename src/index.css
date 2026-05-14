@@ -26,6 +26,11 @@ button { font-family: inherit; }
 ::-webkit-scrollbar-thumb { background: #1f3352; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #2a4670; }
 
+@keyframes livePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.85); }
+}
+
 /* Subtle noise texture overlay for depth */
 .noise-overlay {
   position: fixed;
